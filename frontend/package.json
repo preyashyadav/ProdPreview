@@ -1,0 +1,21 @@
+{
+  "name": "prod-preview-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "express-prom-bundle": "^6.4.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^3.1.0",
+    "vite": "^4.3.9"
+  }
+}

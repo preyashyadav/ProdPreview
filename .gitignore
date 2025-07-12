@@ -1,0 +1,87 @@
+.DS_Store
+Thumbs.db
+.vscode/
+*.swp
+*~ 
+
+# Node.js
+# Dependencies
+**/node_modules/
+# Build outputs
+**/dist/
+**/.next/
+**/build/
+# Lockfiles (if you prefer to regenerate)
+# package-lock.json
+# yarn.lock
+# Local env vars
+.env
+.env.local
+.env.*.local
+
+
+# Python
+**/__pycache__/
+**/*.py[cod]
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+# Pipenv
+Pipfile.lock
+# Pytest cache
+.cache/
+# Other
+*.egg-info/
+dist/
+build/
+
+# Docker
+# ignore images/tars if you ever store locally
+*.tar
+docker-compose.override.yml
+
+
+# Terraform
+
+# Local state
+infra/terraform/terraform.tfstate
+infra/terraform/terraform.tfstate.backup
+# Crash log
+crash.log
+# Module directories
+infra/terraform/.terraform/
+# CLI config
+*.tfvars
+# Override files
+override.tf
+override.tf.json
+*_override.tf
+# Sensitive override
+terraform.tfvars
+
+
+# Helm
+# Helm chart archives
+**/*.tgz
+# Rendered manifests (if you keep them)
+**/rendered.yaml
+# Local test output
+**/helmfile.d/
+# Chart lock (if you don’t want to commit)
+# Chart.lock
+
+
+# Kubernetes
+# Local kubeconfig overrides
+.kube/
+
+# Logs and databases
+*.log
+*.sql
+*.sqlite
+
+# Misc
+*.bak
+*.orig
