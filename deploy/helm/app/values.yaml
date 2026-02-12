@@ -1,0 +1,21 @@
+global:
+  imageTag: "latest"
+  images:
+    api:
+      repository: "preyash29/prod-preview-api"
+    frontend:
+      repository: "preyash29/prod-preview-frontend"
+    worker:
+      repository: "preyash29/prod-preview-worker"
+
+api:
+  service:
+    type: ClusterIP
+
+frontend:
+  service:
+    type: ClusterIP
+
+worker:
+  service:
+    type: ClusterIP

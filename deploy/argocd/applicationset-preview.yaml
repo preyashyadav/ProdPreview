@@ -1,0 +1,52 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: prod-preview-prs
+  namespace: argocd
+spec:
+  generators:
+    - pullRequest:
+        github:
+          owner: preyashyadav
+          repo: ProdPreview
+          tokenRef:
+            secretName: github-token
+            key: token
+        requeueAfterSeconds: 60
+  template:
+    metadata:
+      name: pr-{{number}}-prod-preview
+      labels:
+        app.kubernetes.io/part-of: prod-preview
+        app.kubernetes.io/managed-by: argocd
+        preview/pr-number: "{{number}}"
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/preyashyadav/ProdPreview.git
+        targetRevision: "{{head_sha}}"
+        path: deploy/helm/app
+        helm:
+          valueFiles:
+            - values.yaml
+            - values-preview.yaml
+          parameters:
+            - name: global.imageTag
+              value: "{{head_sha}}"
+            - name: global.images.api.repository
+              value: "preyash29/prod-preview-api"
+            - name: global.images.frontend.repository
+              value: "preyash29/prod-preview-frontend"
+            - name: global.images.worker.repository
+              value: "preyash29/prod-preview-worker"
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: pr-{{number}}
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - PrunePropagationPolicy=foreground
+          - PruneLast=true
