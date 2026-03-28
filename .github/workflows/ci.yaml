@@ -1,46 +1,46 @@
-name: ci
+name: CI
 
 on:
   pull_request:
   push:
-    branches: ["main"]
+    branches: [main]
 
 jobs:
-  api:
-    name: Validate API
+  validate-api:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 18
-      - name: Install API deps
+    defaults:
+      run:
         working-directory: services/api
-        run: npm ci
-
-  frontend:
-    name: Validate Frontend
-    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
-      - name: Install frontend deps
-        working-directory: services/frontend
-        run: npm ci
-      - name: Build frontend
-        working-directory: services/frontend
-        run: npm run build
+          node-version: "18"
+      - run: npm ci
+      - run: npm test --if-present
 
-  worker:
-    name: Validate Worker
+  validate-frontend:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+      - run: npm ci
+      - run: npm run build
+
+  validate-worker:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/worker
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Compile worker
-        working-directory: services/worker
-        run: python -m py_compile worker.py
+      - run: pip install -r requirements.txt
+      - run: python -m py_compile worker.py

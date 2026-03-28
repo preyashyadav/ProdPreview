@@ -1,4 +1,4 @@
-name: preview-images
+name: Preview Build
 
 on:
   pull_request:
@@ -11,14 +11,13 @@ jobs:
       contents: read
       pull-requests: write
     env:
-      COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
-      - name: Log in to Docker Hub
+      - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -26,30 +25,54 @@ jobs:
 
       - uses: docker/setup-buildx-action@v3
 
+      - name: Set image tag
+        run: echo "IMAGE_TAG=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_ENV"
+
       - name: Build and push API
         uses: docker/build-push-action@v5
         with:
           context: services/api
           push: true
-          tags: ${{ env.DOCKERHUB_USERNAME }}/prod-preview-api:${{ env.COMMIT_SHA }}
+          tags: ${{ env.DOCKERHUB_USERNAME }}/prod-preview-api:${{ env.IMAGE_TAG }}
 
       - name: Build and push Frontend
         uses: docker/build-push-action@v5
         with:
           context: services/frontend
           push: true
-          tags: ${{ env.DOCKERHUB_USERNAME }}/prod-preview-frontend:${{ env.COMMIT_SHA }}
+          tags: ${{ env.DOCKERHUB_USERNAME }}/prod-preview-frontend:${{ env.IMAGE_TAG }}
 
       - name: Build and push Worker
         uses: docker/build-push-action@v5
         with:
           context: services/worker
           push: true
-          tags: ${{ env.DOCKERHUB_USERNAME }}/prod-preview-worker:${{ env.COMMIT_SHA }}
+          tags: ${{ env.DOCKERHUB_USERNAME }}/prod-preview-worker:${{ env.IMAGE_TAG }}
 
-      - name: Comment preview instructions
-        uses: peter-evans/create-or-update-comment@v4
+      - name: Comment on PR
+        uses: actions/github-script@v7
+        env:
+          IMAGE_TAG: ${{ env.IMAGE_TAG }}
+          DOCKERHUB_USERNAME: ${{ env.DOCKERHUB_USERNAME }}
         with:
-          issue-number: ${{ github.event.pull_request.number }}
-          body: |
-            Preview deploying for commit `${{ env.COMMIT_SHA }}`. Check namespace `pr-${{ github.event.pull_request.number }}`
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## Preview Environment Building
+
+            **Commit:** \`${process.env.IMAGE_TAG}\`
+            **Namespace:** \`pr-${context.issue.number}\`
+
+            Images pushed:
+            - \`${process.env.DOCKERHUB_USERNAME}/prod-preview-api:${process.env.IMAGE_TAG}\`
+            - \`${process.env.DOCKERHUB_USERNAME}/prod-preview-frontend:${process.env.IMAGE_TAG}\`
+            - \`${process.env.DOCKERHUB_USERNAME}/prod-preview-worker:${process.env.IMAGE_TAG}\`
+
+            Argo CD will deploy within ~60 seconds. Check with:
+            \`\`\`
+            kubectl get pods -n pr-${context.issue.number}
+            \`\`\`
+            `
+            })
