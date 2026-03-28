@@ -1,21 +1,18 @@
 global:
   imageTag: "latest"
-  images:
-    api:
-      repository: "preyash29/prod-preview-api"
-    frontend:
-      repository: "preyash29/prod-preview-frontend"
-    worker:
-      repository: "preyash29/prod-preview-worker"
 
 api:
-  service:
-    type: ClusterIP
+  image:
+    repository: "preyashyadav/prod-preview-api"
+    tag: "latest"
 
 frontend:
-  service:
-    type: ClusterIP
+  image:
+    repository: "preyashyadav/prod-preview-frontend"
+    tag: "latest"
 
 worker:
-  service:
-    type: ClusterIP
+  image:
+    repository: "preyashyadav/prod-preview-worker"
+    tag: "latest"
+  apiUrl: "http://{{ .Release.Name }}-api:4000/api/hello"

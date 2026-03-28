@@ -11,7 +11,7 @@ jobs:
       contents: read
       pull-requests: write
     env:
-      IMAGE_TAG: ${{ github.event.pull_request.head.sha }}
+      COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
     steps:
       - uses: actions/checkout@v4
@@ -31,28 +31,25 @@ jobs:
         with:
           context: services/api
           push: true
-          tags: ${{ env.DOCKERHUB_USERNAME }}/prod-preview-api:${{ env.IMAGE_TAG }}
+          tags: ${{ env.DOCKERHUB_USERNAME }}/prod-preview-api:${{ env.COMMIT_SHA }}
 
       - name: Build and push Frontend
         uses: docker/build-push-action@v5
         with:
           context: services/frontend
           push: true
-          tags: ${{ env.DOCKERHUB_USERNAME }}/prod-preview-frontend:${{ env.IMAGE_TAG }}
+          tags: ${{ env.DOCKERHUB_USERNAME }}/prod-preview-frontend:${{ env.COMMIT_SHA }}
 
       - name: Build and push Worker
         uses: docker/build-push-action@v5
         with:
           context: services/worker
           push: true
-          tags: ${{ env.DOCKERHUB_USERNAME }}/prod-preview-worker:${{ env.IMAGE_TAG }}
+          tags: ${{ env.DOCKERHUB_USERNAME }}/prod-preview-worker:${{ env.COMMIT_SHA }}
 
       - name: Comment preview instructions
         uses: peter-evans/create-or-update-comment@v4
         with:
           issue-number: ${{ github.event.pull_request.number }}
           body: |
-            Preview environment is deploying via Argo CD.
-            Namespace: `pr-${{ github.event.pull_request.number }}`
-            Check service IP: `kubectl -n pr-${{ github.event.pull_request.number }} get svc`
-            Expected: `frontend` service should have an EXTERNAL-IP once provisioned.
+            Preview deploying for commit `${{ env.COMMIT_SHA }}`. Check namespace `pr-${{ github.event.pull_request.number }}`

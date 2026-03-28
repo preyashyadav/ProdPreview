@@ -1,14 +1,16 @@
 {
-  "name": "api",
-  "version": "1.0.0",
-  "main": "index.js",
+  "name": "prod-preview-api",
+  "version": "0.1.0",
+  "main": "app/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node app/index.js",
+    "dev": "node app/index.js",
+    "test": "node --test"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "Express API service for ProdPreview",
   "dependencies": {
     "express": "^5.1.0"
   }

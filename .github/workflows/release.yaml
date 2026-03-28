@@ -10,7 +10,7 @@ jobs:
     permissions:
       contents: read
     env:
-      IMAGE_TAG: ${{ github.sha }}
+      COMMIT_SHA: ${{ github.sha }}
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
     steps:
       - uses: actions/checkout@v4
@@ -29,7 +29,7 @@ jobs:
           context: services/api
           push: true
           tags: |
-            ${{ env.DOCKERHUB_USERNAME }}/prod-preview-api:${{ env.IMAGE_TAG }}
+            ${{ env.DOCKERHUB_USERNAME }}/prod-preview-api:${{ env.COMMIT_SHA }}
             ${{ env.DOCKERHUB_USERNAME }}/prod-preview-api:latest
 
       - name: Build and push Frontend
@@ -38,7 +38,7 @@ jobs:
           context: services/frontend
           push: true
           tags: |
-            ${{ env.DOCKERHUB_USERNAME }}/prod-preview-frontend:${{ env.IMAGE_TAG }}
+            ${{ env.DOCKERHUB_USERNAME }}/prod-preview-frontend:${{ env.COMMIT_SHA }}
             ${{ env.DOCKERHUB_USERNAME }}/prod-preview-frontend:latest
 
       - name: Build and push Worker
@@ -47,5 +47,5 @@ jobs:
           context: services/worker
           push: true
           tags: |
-            ${{ env.DOCKERHUB_USERNAME }}/prod-preview-worker:${{ env.IMAGE_TAG }}
+            ${{ env.DOCKERHUB_USERNAME }}/prod-preview-worker:${{ env.COMMIT_SHA }}
             ${{ env.DOCKERHUB_USERNAME }}/prod-preview-worker:latest

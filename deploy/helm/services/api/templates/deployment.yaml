@@ -1,4 +1,3 @@
-# infra/helm/api/templates/deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -35,29 +34,21 @@ spec:
       {{- end }}
       containers:
         - name: {{ .Chart.Name }}
-          {{- $globalRepo := dig "images" "api" "repository" "" .Values.global -}}
-          {{- $globalTag := dig "imageTag" "" .Values.global -}}
-          image: "{{ default .Values.image.repository $globalRepo }}:{{ default .Values.image.tag $globalTag }}"
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: PORT
+              value: {{ .Values.containerPort | quote }}
           ports:
             - name: http
-              containerPort: 4000
+              containerPort: {{ .Values.containerPort }}
               protocol: TCP
-
-          {{- with .Values.livenessProbe }}
           livenessProbe:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-
-          {{- with .Values.readinessProbe }}
+            {{- toYaml .Values.livenessProbe | nindent 12 }}
           readinessProbe:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-
-          {{- with .Values.resources }}
+            {{- toYaml .Values.readinessProbe | nindent 12 }}
           resources:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
+            {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

@@ -1,15 +1,30 @@
 const express = require('express');
-const app = express();
-const port = process.env.PORT || 4000;
 
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok' });
-});
+function createApp() {
+  const app = express();
 
-app.get('/api/hello', (req, res) => {
-  res.json({ message: 'Hello from the API!' });
-});
+  app.get('/health', (req, res) => {
+    res.json({
+      status: 'ok',
+      service: 'api',
+      timestamp: new Date().toISOString(),
+    });
+  });
 
-app.listen(port, () => {
-  console.log(`API listening on port ${port}`);
-});
+  app.get('/api/hello', (req, res) => {
+    res.json({ message: 'Hello from the API!' });
+  });
+
+  return app;
+}
+
+const app = createApp();
+
+if (require.main === module) {
+  const port = Number(process.env.PORT || 4000);
+  app.listen(port, () => {
+    console.log(`API listening on port ${port}`);
+  });
+}
+
+module.exports = app;

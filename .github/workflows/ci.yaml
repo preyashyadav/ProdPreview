@@ -7,6 +7,7 @@ on:
 
 jobs:
   api:
+    name: Validate API
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -18,6 +19,7 @@ jobs:
         run: npm ci
 
   frontend:
+    name: Validate Frontend
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -32,6 +34,7 @@ jobs:
         run: npm run build
 
   worker:
+    name: Validate Worker
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

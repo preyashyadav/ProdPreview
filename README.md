@@ -13,7 +13,7 @@ Production-like preview environments for every PR. This repo deploys a React fro
 - `deploy/helm/app/` Umbrella chart used by Argo CD (vendored subcharts in `charts/`)
 - `deploy/argocd/` Argo CD ApplicationSet for PR previews
 - `infra/terraform/` AWS VPC + EKS + RDS
-- `scripts/sync-helm-charts.sh` Sync service charts into the umbrella chart
+- `sync-helm-charts.sh` Sync service charts into the umbrella chart vendored under `deploy/helm/app/charts/`
 
 ## Preview Flow (PR Environments)
 
@@ -73,8 +73,10 @@ If your Argo CD namespace is not `argocd`, update:
 The umbrella chart uses vendored subcharts. If you modify charts under `deploy/helm/services/`, run:
 
 ```bash
-./scripts/sync-helm-charts.sh
+./sync-helm-charts.sh
 ```
+
+Commit the updated files under `deploy/helm/app/charts/` along with your source chart changes. Argo CD checks out the repo at the PR `head_sha` and renders `deploy/helm/app`, so preview deploys will fail if the vendored charts are not committed.
 
 ## How It Works
 
@@ -85,3 +87,66 @@ The umbrella chart uses vendored subcharts. If you modify charts under `deploy/h
 ## Diagram
 
 ![ProdPreview Flowchart](flowchart.png)
+
+## Architecture Diagram
+
+```mermaid
+flowchart LR
+  subgraph "GitHub"
+    PR["Pull Request (PR)"]
+    CI["GitHub Actions\nBuild + Push Images"]
+  end
+
+  subgraph "Registry"
+    DH["Docker Hub\nImages tagged with PR SHA"]
+  end
+
+  subgraph "GitOps"
+    AS["Argo CD ApplicationSet\nPR Generator"]
+    ARGO["Argo CD Controller"]
+  end
+
+  subgraph "Kubernetes (EKS)"
+    NS["Namespace: pr-<number>"]
+    FE["Frontend Service\nLoadBalancer"]
+    API["API Service\nClusterIP"]
+    WK["Worker Service\nClusterIP"]
+  end
+
+  PR --> CI --> DH
+  PR --> AS --> ARGO
+  ARGO --> NS
+  DH --> ARGO
+  NS --> FE
+  NS --> API
+  NS --> WK
+
+  FE --> API
+  WK --> API
+```
+
+## PR Lifecycle Diagram
+
+```mermaid
+sequenceDiagram
+  participant Dev as Developer
+  participant GH as GitHub PR
+  participant CI as GitHub Actions
+  participant DH as Docker Hub
+  participant AS as Argo CD ApplicationSet
+  participant ARGO as Argo CD
+  participant K8s as Kubernetes (EKS)
+
+  Dev->>GH: Open/Update PR
+  GH->>CI: Trigger build workflow
+  CI->>DH: Build & push images (tag = PR SHA)
+  GH->>AS: PR discovered (PR generator)
+  AS->>ARGO: Create/Update Application
+  ARGO->>K8s: Sync Helm chart to namespace pr-<number>
+  K8s-->>Dev: Preview URL (LoadBalancer IP)
+
+  Dev->>GH: Merge PR
+  GH->>AS: PR closed
+  AS->>ARGO: Remove Application
+  ARGO->>K8s: Delete namespace pr-<number>
+```

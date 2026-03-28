@@ -1,3 +1,7 @@
 frontend:
   service:
-    type: LoadBalancer
+    type: NodePort
+    nodePort: 30090
+
+worker:
+  apiUrl: "http://{{ .Release.Name }}-api:4000/api/hello"
